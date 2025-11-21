@@ -1,0 +1,363 @@
+# ETL Pipeline Configuration for Oil & Gas Carrier Ticket Transactions
+# This configuration processes high-volume ticket transactions for oil and gas carriers
+
+# Spark Configuration - Optimized for large-scale transaction processing
+spark:
+  spark.sql.adaptive.enabled: "true"
+  spark.sql.adaptive.coalescePartitions.enabled: "true"
+  spark.sql.adaptive.skewJoin.enabled: "true"
+  spark.sql.shuffle.partitions: "400"  # Higher for large transaction volumes
+  spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+  spark.sql.execution.arrow.pyspark.enabled: "true"
+  spark.sql.parquet.compression.codec: "snappy"
+  spark.sql.files.maxPartitionBytes: "268435456"  # 256MB for large files
+  spark.speculation: "true"  # Handle straggler tasks
+
+# Extract Configuration
+# Source: S3 bucket containing daily ticket transaction files
+extract:
+  source_path: "s3://oil-gas-data-lake/raw-transactions/tickets/"
+  file_format: "parquet"
+  # Partition filter for incremental processing
+  partition_filter:
+    year: "2024"
+    month: "12"  # Current month
+    day: null    # Process all days in month
+  # Additional read options
+  options:
+    mergeSchema: "true"  # Handle schema evolution
+    recursiveFileLookup: "true"
+
+# Transform Configuration
+transform:
+  # Column mappings - standardize field names from source system
+  column_mappings:
+    ticket_num: "ticket_id"
+    txn_id: "transaction_id"
+    txn_date: "transaction_date"
+    txn_time: "transaction_time"
+    carrier_code: "carrier_id"
+    carrier: "carrier_name"
+    vessel_code: "vessel_id"
+    vessel: "vessel_name"
+    origin: "origin_port"
+    dest: "destination_port"
+    fuel: "fuel_type"
+    qty: "quantity"
+    qty_unit: "quantity_unit"
+    price: "price_per_unit"
+    amt: "total_amount"
+    curr: "currency"
+    status: "transaction_status"
+    cust_id: "customer_id"
+    cust_name: "customer_name"
+    contract: "contract_number"
+    load_date: "loading_date"
+    discharge_date: "discharge_date"
+    updated: "updated_at"
+  
+  # Data transformations
+  transformations:
+    # Type conversions
+    - type: "cast"
+      column: "ticket_id"
+      target_type: "string"
+    - type: "cast"
+      column: "transaction_id"
+      target_type: "string"
+    - type: "cast"
+      column: "transaction_date"
+      target_type: "date"
+    - type: "cast"
+      column: "transaction_time"
+      target_type: "timestamp"
+    - type: "cast"
+      column: "quantity"
+      target_type: "decimal(18,4)"  # High precision for large volumes
+    - type: "cast"
+      column: "price_per_unit"
+      target_type: "decimal(10,4)"
+    - type: "cast"
+      column: "total_amount"
+      target_type: "decimal(18,2)"
+    - type: "cast"
+      column: "loading_date"
+      target_type: "date"
+    - type: "cast"
+      column: "discharge_date"
+      target_type: "date"
+    - type: "cast"
+      column: "updated_at"
+      target_type: "timestamp"
+    
+    # Standardize fuel types
+    - type: "replace"
+      column: "fuel_type"
+      old_value: "CRUDE"
+      new_value: "Crude Oil"
+    - type: "replace"
+      column: "fuel_type"
+      old_value: "GASOLINE"
+      new_value: "Gasoline"
+    - type: "replace"
+      column: "fuel_type"
+      old_value: "DIESEL"
+      new_value: "Diesel"
+    - type: "replace"
+      column: "fuel_type"
+      old_value: "LNG"
+      new_value: "Liquefied Natural Gas"
+    - type: "replace"
+      column: "fuel_type"
+      old_value: "LPG"
+      new_value: "Liquefied Petroleum Gas"
+    - type: "replace"
+      column: "fuel_type"
+      old_value: "JET_FUEL"
+      new_value: "Jet Fuel"
+    
+    # Standardize transaction status
+    - type: "replace"
+      column: "transaction_status"
+      old_value: "P"
+      new_value: "Pending"
+    - type: "replace"
+      column: "transaction_status"
+      old_value: "C"
+      new_value: "Completed"
+    - type: "replace"
+      column: "transaction_status"
+      old_value: "X"
+      new_value: "Cancelled"
+    - type: "replace"
+      column: "transaction_status"
+      old_value: "R"
+      new_value: "Refunded"
+    
+    # Standardize quantity units
+    - type: "replace"
+      column: "quantity_unit"
+      old_value: "BBL"
+      new_value: "Barrels"
+    - type: "replace"
+      column: "quantity_unit"
+      old_value: "MT"
+      new_value: "Metric Tons"
+    - type: "replace"
+      column: "quantity_unit"
+      old_value: "M3"
+      new_value: "Cubic Meters"
+    - type: "replace"
+      column: "quantity_unit"
+      old_value: "GAL"
+      new_value: "Gallons"
+    
+    # Standardize currency codes
+    - type: "replace"
+      column: "currency"
+      old_value: "USD"
+      new_value: "USD"
+    - type: "replace"
+      column: "currency"
+      old_value: "US$"
+      new_value: "USD"
+    - type: "replace"
+      column: "currency"
+      old_value: "$"
+      new_value: "USD"
+    
+    # Calculate total_amount if missing
+    - type: "custom_expr"
+      column: "total_amount_calculated"
+      expression: "quantity * price_per_unit"
+    
+    # Use calculated amount if original is null
+    - type: "default_value"
+      column: "total_amount"
+      default: "0.00"
+    
+    # Standardize port codes (uppercase)
+    - type: "custom_expr"
+      column: "origin_port"
+      expression: "upper(trim(origin_port))"
+    - type: "custom_expr"
+      column: "destination_port"
+      expression: "upper(trim(destination_port))"
+    
+    # Extract year, month, day for partitioning
+    - type: "custom_expr"
+      column: "year"
+      expression: "year(transaction_date)"
+    - type: "custom_expr"
+      column: "month"
+      expression: "month(transaction_date)"
+    - type: "custom_expr"
+      column: "day"
+      expression: "dayofmonth(transaction_date)"
+    
+    # Calculate transaction value in USD (if currency conversion needed)
+    - type: "custom_expr"
+      column: "total_amount_usd"
+      expression: |
+        CASE 
+          WHEN currency = 'USD' THEN total_amount
+          WHEN currency = 'EUR' THEN total_amount * 1.10
+          WHEN currency = 'GBP' THEN total_amount * 1.25
+          ELSE total_amount
+        END
+  
+  # Data Quality Rules - Critical validations for oil & gas transactions
+  data_quality_rules:
+    # Required fields - must not be null
+    - type: "not_null"
+      column: "ticket_id"
+    - type: "not_null"
+      column: "transaction_id"
+    - type: "not_null"
+      column: "transaction_date"
+    - type: "not_null"
+      column: "carrier_id"
+    - type: "not_null"
+      column: "vessel_id"
+    - type: "not_null"
+      column: "fuel_type"
+    - type: "not_null"
+      column: "quantity"
+    - type: "not_null"
+      column: "quantity_unit"
+    - type: "not_null"
+      column: "price_per_unit"
+    - type: "not_null"
+      column: "total_amount"
+    - type: "not_null"
+      column: "currency"
+    - type: "not_null"
+      column: "transaction_status"
+    
+    # Quantity validations - realistic ranges for oil & gas
+    - type: "value_range"
+      column: "quantity"
+      min: 0.01  # Minimum 0.01 units
+      max: 5000000  # Maximum 5M barrels/tons (very large tanker)
+    
+    # Price validations - reasonable price ranges per unit
+    - type: "value_range"
+      column: "price_per_unit"
+      min: 0.01  # Minimum $0.01 per unit
+      max: 10000  # Maximum $10,000 per unit (for rare/specialty products)
+    
+    # Total amount validation
+    - type: "value_range"
+      column: "total_amount"
+      min: 0.01
+      max: 50000000  # Maximum $50M per transaction
+    
+    # Allowed values for fuel types
+    - type: "allowed_values"
+      column: "fuel_type"
+      allowed_values:
+        - "Crude Oil"
+        - "Gasoline"
+        - "Diesel"
+        - "Jet Fuel"
+        - "Liquefied Natural Gas"
+        - "Liquefied Petroleum Gas"
+        - "Heavy Fuel Oil"
+        - "Marine Gas Oil"
+        - "Bunker Fuel"
+    
+    # Allowed values for transaction status
+    - type: "allowed_values"
+      column: "transaction_status"
+      allowed_values:
+        - "Pending"
+        - "Completed"
+        - "Cancelled"
+        - "Refunded"
+        - "In Transit"
+        - "Delivered"
+    
+    # Allowed values for quantity units
+    - type: "allowed_values"
+      column: "quantity_unit"
+      allowed_values:
+        - "Barrels"
+        - "Metric Tons"
+        - "Cubic Meters"
+        - "Gallons"
+        - "Liters"
+        - "Pounds"
+    
+    # Allowed values for currency
+    - type: "allowed_values"
+      column: "currency"
+      allowed_values:
+        - "USD"
+        - "EUR"
+        - "GBP"
+        - "JPY"
+        - "CNY"
+    
+    # Date validations - transaction date should be within reasonable range
+    - type: "value_range"
+      column: "year"
+      min: 2020
+      max: 2030
+    
+    # Validate discharge date is after loading date (if both present)
+    - type: "custom_validation"
+      description: "discharge_date must be >= loading_date"
+      expression: "discharge_date >= loading_date OR loading_date IS NULL OR discharge_date IS NULL"
+
+# Load Configuration
+load:
+  target_path: "s3://oil-gas-data-lake/processed-transactions/tickets/"
+  mode: "overwrite"  # Use "append" for incremental loads, or use CDC handler
+  # Partition by date for efficient querying
+  partition_by:
+    - "year"
+    - "month"
+    - "day"
+    - "fuel_type"  # Partition by fuel type for common filtering
+  compression: "snappy"
+  coalesce_partitions: null  # Let Spark determine optimal partitions
+  # Additional write options
+  options:
+    maxRecordsPerFile: "10000000"  # 10M records per file
+    mergeSchema: "true"
+
+# CDC Configuration (for incremental processing)
+cdc:
+  enabled: true
+  key_columns:
+    - "ticket_id"
+    - "transaction_id"
+  timestamp_column: "updated_at"
+  lookback_hours: 24  # Process last 24 hours of changes
+  merge_mode: "upsert"  # Update existing, insert new
+
+# Monitoring and Alerting
+monitoring:
+  # Metrics to track
+  metrics:
+    - "record_count"
+    - "total_amount_sum"
+    - "total_amount_usd_sum"
+    - "unique_carriers"
+    - "unique_vessels"
+    - "unique_customers"
+    - "transactions_by_status"
+    - "transactions_by_fuel_type"
+  
+  # Alert thresholds
+  alerts:
+    - metric: "record_count"
+      threshold: 1000000  # Alert if processing > 1M records
+      severity: "info"
+    - metric: "data_quality_failures"
+      threshold: 100  # Alert if > 100 records fail validation
+      severity: "warning"
+    - metric: "pipeline_duration_seconds"
+      threshold: 3600  # Alert if pipeline takes > 1 hour
+      severity: "warning"
+
