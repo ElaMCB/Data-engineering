@@ -19,6 +19,8 @@ This portfolio demonstrates hands-on experience in data engineering with a focus
 - **Data Quality**: Validation, QA procedures, and data lifecycle management
 - **Security & Compliance**: GDPR, CCPA, GLBA compliance
 
+> 📊 **Visualizations**: Explore detailed architecture diagrams, data flow visualizations, and system designs in the [ETL Pipeline Framework Visualizations](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md).
+
 ## Skills Alignment
 
 ### Core Competencies
@@ -58,9 +60,81 @@ This portfolio demonstrates hands-on experience in data engineering with a focus
 - Optimized for cost: reduced EMR costs by 45% through auto-scaling and spot instances
 - Handles 5TB+ daily data volume with 99.9% uptime
 
-[View Project →](./projects/02-etl-pipeline-framework/)
+[View Project →](./projects/02-etl-pipeline-framework/) | [Architecture Diagrams →](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md)
 
 **Key Technologies**: Apache Spark, AWS EMR, Glue, Python (Pandas, NumPy), Parquet
+
+#### Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Data Sources"
+        S3[S3 Raw Data<br/>Parquet/CSV/JSON]
+        RDS[RDS Databases<br/>PostgreSQL/MySQL]
+    end
+    
+    subgraph "ETL Framework"
+        subgraph "Extract Layer"
+            E1[S3 Extractor]
+            E2[RDS Extractor]
+        end
+        
+        subgraph "Transform Layer"
+            T1[Data Transformer<br/>Cleaning & Validation]
+            T2[Business Rules<br/>Enrichment]
+        end
+        
+        subgraph "Load Layer"
+            L1[Parquet Loader]
+            L2[Delta Lake Writer]
+        end
+    end
+    
+    subgraph "Supporting Services"
+        CDC[CDC Handler<br/>Incremental Loading]
+        COST[Cost Optimizer<br/>EMR Configuration]
+        SPARK[Spark Utils<br/>Session Management]
+    end
+    
+    subgraph "Target Storage"
+        S3OUT[S3 Processed Data<br/>Partitioned Parquet]
+        DELTA[Delta Lake Tables<br/>Unity Catalog]
+    end
+    
+    subgraph "Monitoring & QA"
+        MON[CloudWatch<br/>Monitoring]
+        DQ[Great Expectations<br/>Data Quality]
+        ALERT[Alerting<br/>PagerDuty/Slack]
+    end
+    
+    S3 --> E1
+    RDS --> E2
+    
+    E1 --> T1
+    E2 --> T1
+    T1 --> T2
+    T2 --> L1
+    T2 --> L2
+    
+    CDC --> T1
+    COST --> SPARK
+    SPARK --> T1
+    
+    L1 --> S3OUT
+    L2 --> DELTA
+    
+    T1 --> DQ
+    T2 --> DQ
+    L1 --> MON
+    MON --> ALERT
+    
+    style S3 fill:#e1f5ff
+    style RDS fill:#e1f5ff
+    style S3OUT fill:#d4edda
+    style DELTA fill:#d4edda
+    style MON fill:#fff3cd
+    style DQ fill:#fff3cd
+```
 
 ---
 
