@@ -1,0 +1,52 @@
+# AWS EMR Cluster Configuration
+
+# Cluster Name
+cluster_name: "etl-pipeline-cluster"
+
+# Release Label
+release_label: "emr-6.15.0"
+
+# Applications
+applications:
+  - Name: "Spark"
+  - Name: "Hadoop"
+  - Name: "Livy"
+
+# Instance Configuration
+instances:
+  master_instance_type: "m5.xlarge"
+  core_instance_type: "m5.xlarge"
+  core_instance_count: 2
+  task_instance_count: 0
+  
+  # Cost Optimization
+  use_spot_instances: true
+  spot_bid_percentage: 0.70
+  
+  # Auto Scaling
+  auto_scaling:
+    enabled: true
+    min_instances: 2
+    max_instances: 20
+    scale_up_threshold: 0.75
+    scale_down_threshold: 0.25
+
+# Spark Configuration
+spark_config:
+  spark.sql.adaptive.enabled: "true"
+  spark.sql.adaptive.coalescePartitions.enabled: "true"
+  spark.sql.shuffle.partitions: "200"
+  spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+  spark.sql.execution.arrow.pyspark.enabled: "true"
+  spark.sql.parquet.compression.codec: "snappy"
+
+# Bootstrap Actions (optional)
+bootstrap_actions: []
+
+# Tags
+tags:
+  - Key: "Project"
+    Value: "ETL-Pipeline"
+  - Key: "Environment"
+    Value: "Production"
+

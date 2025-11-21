@@ -1,0 +1,56 @@
+# ETL Pipeline Configuration
+
+# Spark Configuration
+spark:
+  spark.sql.adaptive.enabled: "true"
+  spark.sql.adaptive.coalescePartitions.enabled: "true"
+  spark.sql.shuffle.partitions: "200"
+  spark.serializer: "org.apache.spark.serializer.KryoSerializer"
+
+# Extract Configuration
+extract:
+  source_path: "s3://my-bucket/input-data/"
+  file_format: "parquet"
+  partition_filter:
+    year: "2024"
+    month: "01"
+
+# Transform Configuration
+transform:
+  column_mappings:
+    old_col_name: "new_col_name"
+    user_id: "customer_id"
+  
+  transformations:
+    - type: "cast"
+      column: "amount"
+      target_type: "decimal(10,2)"
+    - type: "default_value"
+      column: "status"
+      default: "active"
+    - type: "replace"
+      column: "country"
+      old_value: "USA"
+      new_value: "United States"
+  
+  data_quality_rules:
+    - type: "not_null"
+      column: "customer_id"
+    - type: "value_range"
+      column: "age"
+      min: 0
+      max: 120
+    - type: "allowed_values"
+      column: "status"
+      allowed_values: ["active", "inactive", "pending"]
+
+# Load Configuration
+load:
+  target_path: "s3://my-bucket/output-data/"
+  mode: "overwrite"
+  partition_by:
+    - "year"
+    - "month"
+  compression: "snappy"
+  coalesce_partitions: null
+
