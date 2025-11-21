@@ -1,0 +1,230 @@
+# Oil & Gas Ticket Transaction Data Quality Rules
+# Comprehensive validation rules for oil & gas carrier transactions
+
+# Basic Validations
+basic_rules:
+  - name: "not_null_ticket_id"
+    description: "Ticket ID must not be null"
+    type: "not_null"
+    column: "ticket_id"
+    severity: "error"
+    enabled: true
+  
+  - name: "not_null_transaction_id"
+    description: "Transaction ID must not be null"
+    type: "not_null"
+    column: "transaction_id"
+    severity: "error"
+    enabled: true
+  
+  - name: "not_null_carrier_id"
+    description: "Carrier ID must not be null"
+    type: "not_null"
+    column: "carrier_id"
+    severity: "error"
+    enabled: true
+  
+  - name: "not_null_vessel_id"
+    description: "Vessel ID must not be null"
+    type: "not_null"
+    column: "vessel_id"
+    severity: "error"
+    enabled: true
+  
+  - name: "not_null_fuel_type"
+    description: "Fuel type must not be null"
+    type: "not_null"
+    column: "fuel_type"
+    severity: "error"
+    enabled: true
+  
+  - name: "not_null_quantity"
+    description: "Quantity must not be null"
+    type: "not_null"
+    column: "quantity"
+    severity: "error"
+    enabled: true
+  
+  - name: "not_null_total_amount"
+    description: "Total amount must not be null"
+    type: "not_null"
+    column: "total_amount"
+    severity: "error"
+    enabled: true
+
+# Value Range Validations
+value_range_rules:
+  - name: "quantity_range"
+    description: "Quantity must be between 0.01 and 5,000,000"
+    type: "value_range"
+    column: "quantity"
+    min: 0.01
+    max: 5000000
+    severity: "error"
+    enabled: true
+  
+  - name: "price_per_unit_range"
+    description: "Price per unit must be between $0.01 and $10,000"
+    type: "value_range"
+    column: "price_per_unit"
+    min: 0.01
+    max: 10000
+    severity: "error"
+    enabled: true
+  
+  - name: "total_amount_range"
+    description: "Total amount must be between $0.01 and $50,000,000"
+    type: "value_range"
+    column: "total_amount"
+    min: 0.01
+    max: 50000000
+    severity: "error"
+    enabled: true
+
+# Allowed Values Validations
+allowed_values_rules:
+  - name: "valid_fuel_type"
+    description: "Fuel type must be valid"
+    type: "allowed_values"
+    column: "fuel_type"
+    allowed_values:
+      - "Crude Oil"
+      - "Gasoline"
+      - "Diesel"
+      - "Jet Fuel"
+      - "Liquefied Natural Gas"
+      - "Liquefied Petroleum Gas"
+      - "Heavy Fuel Oil"
+      - "Marine Gas Oil"
+      - "Bunker Fuel"
+    severity: "error"
+    enabled: true
+  
+  - name: "valid_quantity_unit"
+    description: "Quantity unit must be valid"
+    type: "allowed_values"
+    column: "quantity_unit"
+    allowed_values:
+      - "Barrels"
+      - "Metric Tons"
+      - "Cubic Meters"
+      - "Gallons"
+      - "Liters"
+      - "Pounds"
+    severity: "error"
+    enabled: true
+  
+  - name: "valid_currency"
+    description: "Currency must be valid"
+    type: "allowed_values"
+    column: "currency"
+    allowed_values:
+      - "USD"
+      - "EUR"
+      - "GBP"
+      - "JPY"
+      - "CNY"
+    severity: "error"
+    enabled: true
+  
+  - name: "valid_transaction_status"
+    description: "Transaction status must be valid"
+    type: "allowed_values"
+    column: "transaction_status"
+    allowed_values:
+      - "Pending"
+      - "Completed"
+      - "Cancelled"
+      - "Refunded"
+      - "In Transit"
+      - "Delivered"
+    severity: "error"
+    enabled: true
+
+# Business Rule Validations
+business_rules:
+  - name: "quantity_price_consistency"
+    description: "Total amount must equal quantity × price_per_unit (within $0.01 tolerance)"
+    type: "calculated_field"
+    calculated_column: "total_amount"
+    formula: "quantity * price_per_unit"
+    tolerance: 0.01
+    severity: "error"
+    enabled: true
+  
+  - name: "discharge_after_loading"
+    description: "Discharge date must be after or equal to loading date"
+    type: "date_comparison"
+    column1: "discharge_date"
+    column2: "loading_date"
+    operator: ">="
+    severity: "error"
+    enabled: true
+  
+  - name: "transaction_date_not_future"
+    description: "Transaction date must not be in the future"
+    type: "date_range"
+    column: "transaction_date"
+    max_date: "CURRENT_DATE"
+    severity: "error"
+    enabled: true
+
+# Format Validations
+format_rules:
+  - name: "port_code_format"
+    description: "Port codes must be 3-5 uppercase letters"
+    type: "regex_match"
+    column: "origin_port"
+    pattern: "^[A-Z]{3,5}$"
+    severity: "error"
+    enabled: true
+  
+  - name: "destination_port_format"
+    description: "Destination port codes must be 3-5 uppercase letters"
+    type: "regex_match"
+    column: "destination_port"
+    pattern: "^[A-Z]{3,5}$"
+    severity: "error"
+    enabled: true
+  
+  - name: "ticket_id_format"
+    description: "Ticket ID must match format TKT-XXXXXX"
+    type: "regex_match"
+    column: "ticket_id"
+    pattern: "^TKT-[A-Z0-9-]+$"
+    severity: "warning"
+    enabled: true
+
+# Referential Integrity
+referential_integrity_rules:
+  - name: "carrier_exists"
+    description: "Carrier ID must exist in master data"
+    type: "referential_integrity"
+    foreign_key: "carrier_id"
+    reference_table: "master_data.carriers"
+    reference_key: "carrier_id"
+    severity: "error"
+    enabled: false  # Requires master data table
+  
+  - name: "vessel_exists"
+    description: "Vessel ID must exist in master data"
+    type: "referential_integrity"
+    foreign_key: "vessel_id"
+    reference_table: "master_data.vessels"
+    reference_key: "vessel_id"
+    severity: "error"
+    enabled: false  # Requires master data table
+
+# Quality Thresholds
+quality_thresholds:
+  overall_pass_rate: 99.9  # Minimum pass rate percentage
+  max_failed_records: 100  # Maximum failed records before alert
+  alert_on_warning: false  # Alert on warnings (not just errors)
+
+# Reporting
+reporting:
+  generate_html_report: true
+  generate_csv_report: true
+  include_failed_records: true
+  max_failed_records_in_report: 1000
+
