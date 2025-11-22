@@ -19,23 +19,23 @@ This portfolio demonstrates hands-on experience in data engineering with a focus
 - **Data Quality**: Validation, QA procedures, and data lifecycle management
 - **Security & Compliance**: GDPR, CCPA, GLBA compliance
 
-> 📊 **Visualizations**: Explore detailed architecture diagrams, data flow visualizations, and system designs in the [ETL Pipeline Framework Visualizations](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md).
+> **Visualizations**: Explore detailed architecture diagrams, data flow visualizations, and system designs in the [ETL Pipeline Framework Visualizations](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md).
 
 ---
 
-## 🤖 Featured Innovation: Autonomous AI Testing Agent
+## Featured Innovation: Autonomous AI Testing Agent
 
 **Revolutionary AI-powered testing solution for ETL/ELT pipelines**
 
 I've developed an **autonomous AI testing agent** that revolutionizes how data pipelines are tested. This innovative solution uses AWS Bedrock and advanced AI to autonomously discover, test, and validate ETL/ELT pipelines without human intervention.
 
 ### Key Capabilities
-- 🎯 **Autonomous Discovery**: Automatically discovers and analyzes pipelines in codebase
-- 🧪 **AI Test Generation**: Generates comprehensive test suites using natural language requirements
-- ⚡ **Intelligent Execution**: Executes tests with smart selection and parallelization
-- 🔍 **Root Cause Analysis**: AI-powered analysis identifies issues and suggests fixes
-- 📚 **Self-Learning**: Learns from test runs to improve future testing
-- 🔄 **ETL & ELT Support**: Handles both transformation patterns seamlessly
+- **Autonomous Discovery**: Automatically discovers and analyzes pipelines in codebase
+- **AI Test Generation**: Generates comprehensive test suites using natural language requirements
+- **Intelligent Execution**: Executes tests with smart selection and parallelization
+- **Root Cause Analysis**: AI-powered analysis identifies issues and suggests fixes
+- **Self-Learning**: Learns from test runs to improve future testing
+- **ETL & ELT Support**: Handles both transformation patterns seamlessly
 
 ### Impact
 - **70% reduction** in manual testing time
@@ -46,9 +46,9 @@ I've developed an **autonomous AI testing agent** that revolutionizes how data p
 ### Architecture
 Built on AWS serverless architecture (Lambda, Step Functions, Bedrock, DynamoDB) with Infrastructure as Code (CDK) for complete automation.
 
-**[🚀 Explore the AI Testing Agent →](./projects/02-etl-pipeline-framework/AI_TESTING_AGENT.md)** | 
-**[📋 Full Proposal →](./projects/02-etl-pipeline-framework/LEGACY_MIGRATION_AND_AI_TESTING_PROPOSAL.md)** | 
-**[⚙️ Deployment Guide →](./projects/02-etl-pipeline-framework/AGENT_DEPLOYMENT_GUIDE.md)**
+**[Explore the AI Testing Agent →](./projects/02-etl-pipeline-framework/AI_TESTING_AGENT.md)** | 
+**[Full Proposal →](./projects/02-etl-pipeline-framework/LEGACY_MIGRATION_AND_AI_TESTING_PROPOSAL.md)** | 
+**[Deployment Guide →](./projects/02-etl-pipeline-framework/AGENT_DEPLOYMENT_GUIDE.md)**
 
 ---
 
@@ -90,9 +90,9 @@ Built on AWS serverless architecture (Lambda, Step Functions, Bedrock, DynamoDB)
 - Implemented incremental loading with change data capture (CDC)
 - Optimized for cost: reduced EMR costs by 45% through auto-scaling and spot instances
 - Handles 5TB+ daily data volume with 99.9% uptime
-- **🤖 AI Innovation**: Autonomous AI testing agent for ETL/ELT pipelines (see [AI Testing Agent](./projects/02-etl-pipeline-framework/AI_TESTING_AGENT.md))
+- **AI Innovation**: Autonomous AI testing agent for ETL/ELT pipelines (see [AI Testing Agent](./projects/02-etl-pipeline-framework/AI_TESTING_AGENT.md))
 
-[View Project →](./projects/02-etl-pipeline-framework/) | [Architecture Diagrams →](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md) | [🤖 AI Testing Agent →](./projects/02-etl-pipeline-framework/AI_TESTING_AGENT.md)
+[View Project →](./projects/02-etl-pipeline-framework/) | [Architecture Diagrams →](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md) | [AI Testing Agent →](./projects/02-etl-pipeline-framework/AI_TESTING_AGENT.md)
 
 **Key Technologies**: Apache Spark, AWS EMR, Glue, Python (Pandas, NumPy), Parquet, **AWS Bedrock (AI)**
 
