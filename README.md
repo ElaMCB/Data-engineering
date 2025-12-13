@@ -18,8 +18,11 @@ This portfolio demonstrates hands-on experience in data engineering with a focus
 - **Data Modeling**: Production-ready pipelines handling TBs of data
 - **Data Quality**: Validation, QA procedures, and data lifecycle management
 - **Security & Compliance**: GDPR, CCPA, GLBA compliance
+- **AI & Automation**: Agentic workflows, AI-powered testing, autonomous agents
 
 > **Visualizations**: Explore detailed architecture diagrams, data flow visualizations, and system designs in the [ETL Pipeline Framework Visualizations](./projects/02-etl-pipeline-framework/VISUALIZATIONS.md).
+
+> **QA Agentic Workflows**: Learn how to build your own specialized AI agents for daily QA work with our [Practical Guide to QA Agentic Workflows](./docs/QA_AGENTIC_WORKFLOWS_GUIDE.md). Includes free solutions, Monday-Friday workflows, and chat agents.
 
 ---
 
@@ -304,7 +307,8 @@ Data-engineering/
 └── docs/                              # Documentation and guides
     ├── architecture/
     ├── best-practices/
-    └── tutorials/
+    ├── tutorials/
+    └── QA_AGENTIC_WORKFLOWS_GUIDE.md  # Practical guide to building QA agents
 ```
 
 ---
